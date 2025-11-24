@@ -1,317 +1,180 @@
-# 📦 SmartStockAI - Intelligent Inventory Management System
+# SmartStockAI - Inventory Management System
 
-<div align="center">
+A full-stack inventory management system built with Spring Boot and MySQL. It includes features like demand forecasting, user roles, and real-time analytics.
 
-![Java](https://img.shields.io/badge/Java-17+-orange?style=for-the-badge&logo=java)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.0-brightgreen?style=for-the-badge&logo=spring)
-![MySQL](https://img.shields.io/badge/MySQL-8.0+-blue?style=for-the-badge&logo=mysql)
-![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+## What This Project Does
 
-A modern, full-stack inventory management system with AI-powered demand forecasting, role-based access control, and real-time analytics.
+This is an inventory management system I built to help manage products, track sales, and monitor stock levels. It has three different user roles (Owner, Sales Manager, Stock Manager) and each role has different permissions.
 
-[Features](#-features) • [Quick Start](#-quick-start) • [Documentation](#-documentation) • [API](#-api-endpoints)
+The cool part is that it also tries to predict future demand for products using some basic machine learning concepts.
 
-</div>
+## Main Features
 
----
+### User Roles
+- **Owner** - Can access everything (analytics, predictions, manage users)
+- **Sales Manager** - Can record sales and check stock
+- **Stock Manager** - Can add new stock and manage inventory
 
-## 🎮 Try It Now (No Setup Required!)
+### What You Can Do
+- Add, edit, and delete products
+- Keep track of inventory levels
+- Record sales transactions
+- See profit and expense reports
+- Get predictions on product demand (still working on improving this!)
+- Get alerts when stock is running low
 
-Want to test the application immediately? Use the H2 in-memory database:
+### The Interface
+- Built with Bootstrap 5, so it looks decent
+- Different dashboards for each role
+- Some charts to visualize the data
+- Works on mobile too (mostly)
+
+## Technologies I Used
+
+### Backend
+- Spring Boot 3.x (my first time using version 3!)
+- Spring Security for login stuff
+- Spring Data JPA for database operations
+- MySQL database
+- Some basic ML for predictions
+
+### Frontend
+- HTML/CSS/JavaScript
+- Bootstrap 5 for styling
+- Chart.js for graphs
+- Font Awesome for icons
+
+## How to Get Started
+
+### What You Need First
+- Java 17 or newer
+- Maven (for building the project)
+- MySQL 8.0 or newer
+
+### Quick Test Run (No MySQL Setup!)
+
+If you just want to try it out quickly without installing MySQL:
 
 ```bash
-git clone https://github.com/yourusername/smartstockai.git
-cd smartstockai
+git clone https://github.com/Sudipta6051/SmartstockAI.git
+cd SmartstockAI
 mvn clean package -DskipTests
 java -jar target/smartstockai-1.0.0.jar --spring.profiles.active=test
 ```
 
-Then open `http://localhost:8080` and login with:
-- **Username**: `prabir` | **Password**: `prabir123` (Owner)
-- **Username**: `sales` | **Password**: `sales123` (Sales Manager)
-- **Username**: `stock` | **Password**: `stock123` (Stock Manager)
+Then go to `http://localhost:8080` in your browser.
 
-> 💡 **Note**: First-time users need to register. Use the "Register" tab on the login page.
+**Note:** This uses an in-memory database, so your data will disappear when you close the app. It's just for testing.
 
----
+### Full Setup (With MySQL)
 
-## ✨ Features
-
-### 🔐 Role-Based Access Control
-- **Owner**: Full access to all features including analytics, predictions, and user management
-- **Sales Manager**: Record sales, view sales history, and check stock levels
-- **Stock Manager**: Receive stock, manage inventory, and view stock levels
-
-### 📊 Core Functionality
-- **Product Management**: Create, update, and delete products with SKU tracking
-- **Stock Management**: Track inventory levels with low-stock alerts
-- **Sales Tracking**: Record and monitor sales transactions
-- **Profit Analysis**: Calculate and display profit/expense summaries
-- **Demand Forecasting**: AI-powered predictions for product demand
-
-### 🎨 Modern UI
-- Responsive Bootstrap 5 design
-- Role-specific dashboards
-- Real-time data updates
-- Interactive charts and visualizations
-
-## Technology Stack
-
-### Backend
-- **Spring Boot 3.x**
-- **Spring Security** with JWT authentication
-- **Spring Data JPA** with Hibernate
-- **MySQL** database
-- **Machine Learning** integration for demand forecasting
-
-### Frontend
-- **HTML5/CSS3**
-- **JavaScript (ES6+)**
-- **Bootstrap 5**
-- **Chart.js** for data visualization
-- **Font Awesome** icons
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Java 17 or higher
-- Maven 3.6+
-- MySQL 8.0+
-
-### Database Setup
-
-1. Create a MySQL database:
+1. **Setup MySQL database:**
 ```sql
 CREATE DATABASE smartstockai;
 ```
 
-2. Update `src/main/resources/application.properties`:
+2. **Update database credentials** in `src/main/resources/application.properties`:
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/smartstockai
 spring.datasource.username=your_username
 spring.datasource.password=your_password
 ```
 
-### Installation & Running
-
-#### 🎯 Quick Test (No Database Setup Required)
-
-Perfect for trying out the application without MySQL installation:
-
+3. **Clone and run:**
 ```bash
-git clone https://github.com/yourusername/smartstockai.git
-cd smartstockai
-mvn clean package -DskipTests
-java -jar target/smartstockai-1.0.0.jar --spring.profiles.active=test
-```
-
-This uses H2 in-memory database. Access at `http://localhost:8080`
-
-> **Note**: Data will be lost when you stop the application. For persistent storage, use MySQL (see below).
-
-#### 💾 Production Setup (MySQL)
-
-1. **Install MySQL 8.0+** and create database:
-```sql
-CREATE DATABASE smartstockai;
-```
-
-2. **Set database credentials**:
-
-**Option A**: Create `local-config.bat` (recommended - not tracked by git):
-```batch
-set DB_USERNAME=root
-set DB_PASSWORD=your_actual_password
-java -jar target\smartstockai-1.0.0.jar
-```
-
-**Option B**: Set environment variables:
-```bash
-# Windows
-set DB_USERNAME=root
-set DB_PASSWORD=your_password
-
-# Linux/Mac
-export DB_USERNAME=root
-export DB_PASSWORD=your_password
-```
-
-**Option C**: Update `start-smartstockai.bat` with your credentials
-
-3. **Clone and run**:
-```bash
-git clone https://github.com/yourusername/smartstockai.git
-cd smartstockai
+git clone https://github.com/Sudipta6051/SmartstockAI.git
+cd SmartstockAI
 mvn clean package -DskipTests
 java -jar target/smartstockai-1.0.0.jar
 ```
 
-#### 🪟 Windows Users - Easy Startup
+4. Open your browser and go to `http://localhost:8080`
 
-1. Build once: `mvn clean package -DskipTests`
-2. Double-click `start-smartstockai.bat`
-3. Or create desktop shortcut: Double-click `create-desktop-shortcut.bat`
+## Test Login Credentials
 
-See [HOW-TO-START.md](HOW-TO-START.md) for detailed instructions.
+You can use these accounts to test different features:
 
-## 👥 Default Login Credentials
+| Username | Password | Role |
+|----------|----------|------|
+| prabir | prabir123 | Owner |
+| sales | sales123 | Sales Manager |
+| stock | stock123 | Stock Manager |
 
-| Role | Username | Password | Access Level |
-|------|----------|----------|--------------|
-| Owner | `prabir` | `prabir123` | Full system access |
-| Sales Manager | `sales` | `sales123` | Sales operations |
-| Stock Manager | `stock` | `stock123` | Inventory management |
-
-> **Note**: Change these passwords after first login for security.
-
-## 📸 Screenshots
-
-### Login Page
-Modern, animated login interface with gradient background.
-
-### Owner Dashboard
-Comprehensive analytics with profit tracking, charts, and inventory management.
-
-### Sales Dashboard
-Streamlined interface for recording sales and checking stock levels.
-
-### Stock Dashboard
-Efficient inventory management with low-stock alerts.
-
----
-
-## 📚 API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login and get JWT token
-
-### Products
-- `GET /api/products` - Get all products
-- `POST /api/products` - Create product (Owner/Stock Manager)
-- `PUT /api/products/{id}` - Update product (Owner/Stock Manager)
-- `DELETE /api/products/{id}` - Delete product (Owner)
-
-### Stock
-- `GET /api/stock` - Get all stock
-- `POST /api/stock/receive` - Receive stock (Owner/Stock Manager)
-- `GET /api/stock/low-stock` - Get low stock items
-
-### Sales
-- `GET /api/sales` - Get all sales
-- `POST /api/sales` - Record sale (Owner/Sales Manager)
-- `GET /api/sales/date-range` - Get sales by date range
-
-### Dashboard
-- `GET /api/owner/summary` - Get profit summary (Owner)
-- `GET /api/predictions/forecast/{productId}` - Get demand forecast (Owner)
+**Important:** You should probably change these passwords if you're actually going to use this!
 
 ## Project Structure
+
+Here's how I organized the code:
 
 ```
 src/
 ├── main/
 │   ├── java/com/smartstockai/
-│   │   ├── config/          # Security, Database, Scheduler configs
-│   │   ├── controller/      # REST API controllers
-│   │   ├── dao/             # Data Access Objects
-│   │   ├── model/           # Entity models
+│   │   ├── config/          # Configuration files
+│   │   ├── controller/      # REST API endpoints
+│   │   ├── dao/             # Database access
+│   │   ├── model/           # Data models
 │   │   ├── service/         # Business logic
-│   │   ├── ml/              # Machine learning services
-│   │   └── util/            # Utility classes
+│   │   ├── ml/              # ML prediction stuff
+│   │   └── util/            # Helper classes
 │   └── resources/
-│       ├── static/          # Frontend files
-│       │   ├── dashboard/   # Role-specific dashboards
-│       │   ├── js/          # JavaScript utilities
-│       │   ├── api.js       # API service layer
-│       │   ├── login.html   # Login page
-│       │   └── index.html   # Landing page
+│       ├── static/          # Frontend files (HTML, CSS, JS)
+│       │   ├── dashboard/   # Different dashboards
+│       │   ├── js/          # JavaScript files
+│       │   └── login.html
 │       └── application.properties
 ```
 
-## Features by Role
+## API Endpoints (The Main Ones)
 
-### Owner Dashboard
-- View total income, profit, and product count
-- Manage products (CRUD operations)
-- Receive stock and manage inventory
-- Record sales
-- View demand predictions with charts
-- Monitor low stock alerts
+### Authentication
+- `POST /api/auth/register` - Create new account
+- `POST /api/auth/login` - Login
 
-### Sales Manager Dashboard
-- Record new sales
-- View sales history
-- Check current stock levels
-- Search products
-- Low stock warnings
+### Products
+- `GET /api/products` - Get all products
+- `POST /api/products` - Add new product
+- `PUT /api/products/{id}` - Update product
+- `DELETE /api/products/{id}` - Delete product
 
-### Stock Manager Dashboard
-- Receive new stock
-- View complete inventory
-- Monitor stock levels
-- Track critical stock items
-- Search inventory
+### Stock Management
+- `GET /api/stock` - View current stock
+- `POST /api/stock/receive` - Add stock
 
-## Security
+### Sales
+- `GET /api/sales` - View sales history
+- `POST /api/sales` - Record a sale
 
-- JWT-based authentication
-- Role-based authorization using Spring Security
-- Password encryption
-- Protected API endpoints
-- Session management
+## Things I Learned Building This
 
-## 🛠️ Built With
+- How to use JWT tokens for authentication (took me a while to figure this out)
+- Spring Security configuration (still learning this tbh)
+- Connecting frontend to backend using REST APIs
+- Basic machine learning concepts for predictions
+- MySQL database design and relationships
 
-- **Backend**: Spring Boot, Spring Security, Spring Data JPA, Hibernate
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+), Bootstrap 5, Chart.js
-- **Database**: MySQL 8.0+
-- **Authentication**: JWT (JSON Web Tokens)
-- **Build Tool**: Maven
-- **AI/ML**: Custom demand forecasting algorithms
+## Known Issues / Things to Improve
 
-## 📱 Mobile Support
+- The demand prediction isn't super accurate yet, needs more work
+- Could use better error handling in some places
+- Mobile responsive design could be better
+- Need to add more unit tests
+- The UI could look more modern
 
-Fully responsive design works seamlessly on:
-- 📱 Mobile phones
-- 📱 Tablets
-- 💻 Desktops
-- 🖥️ Large screens
+## Contributing
 
-Access from any device on your local network using your computer's IP address.
+If you want to improve this project, feel free to fork it and submit a pull request! I'm still learning, so any suggestions are welcome.
 
-## 🤝 Contributing
+## License
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+MIT License - feel free to use this code for whatever you want
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## Contact
 
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 💬 Support
-
-- 📧 For issues and questions, please create an issue in the repository
-- 📖 Check [HOW-TO-START.md](HOW-TO-START.md) for detailed setup instructions
-- 🐛 Report bugs via GitHub Issues
-
-## 🌟 Acknowledgments
-
-- Spring Boot team for the excellent framework
-- Bootstrap team for the UI components
-- Chart.js for beautiful data visualizations
+If you find any bugs or have questions, just create an issue on GitHub.
 
 ---
 
-<div align="center">
+Made by me as a learning project. Hope it helps someone! ⭐
 
-Made with ❤️ by SmartStockAI Team
-
-⭐ Star this repo if you find it helpful!
-
-</div>
+**PS:** This is my first major Spring Boot project, so there might be some rough edges. Any feedback is appreciated!

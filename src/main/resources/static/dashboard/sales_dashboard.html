@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0d6efd">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>SmartStockAI - Sales Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../css/styles.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(to bottom right, #f8fafc, #e2e8f0); }
+        .navbar-brand { font-weight: 700; font-size: 1.3rem; }
+        .navbar { box-shadow: 0 2px 15px rgba(0,0,0,0.1); }
+        .card { 
+            border: none; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        .card-header {
+            border-radius: 16px 16px 0 0 !important;
+            font-weight: 600;
+            border-bottom: none;
+        }
+        .stat-card { transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 12px 24px rgba(0,0,0,0.15); }
+        .low-stock { background-color: #fef3c7 !important; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .btn {
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .navbar { display: none; }
+            .container { padding: 12px; padding-bottom: 80px; }
+            .card-body { padding: 16px; }
+            .form-label { font-size: 14px; font-weight: 600; }
+            .form-control, .form-select { font-size: 16px; padding: 14px; min-height: 48px; }
+            .btn { padding: 14px; font-size: 16px; min-height: 48px; }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Mobile Header -->
+    <div class="mobile-header d-md-none">
+        <h5 class="mb-0"><i class="fas fa-cash-register me-2"></i>Sales Manager</h5>
+        <button class="btn btn-sm btn-outline-danger" onclick="apiService.logout()">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary d-none d-md-flex">
+        <div class="container">
+            <span class="navbar-brand">SmartStockAI - Sales Manager</span>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link text-white" href="#" onclick="showSection('record-sale')">
+                    <i class="fas fa-cash-register me-1"></i>Record Sale
+                </a>
+                <a class="nav-link text-white" href="#" onclick="showSection('sales-history')">
+                    <i class="fas fa-history me-1"></i>Sales History
+                </a>
+                <a class="nav-link text-white" href="#" onclick="showSection('check-stock')">
+                    <i class="fas fa-warehouse me-1"></i>Check Stock
+                </a>
+                <a class="nav-link text-white" href="#" onclick="apiService.logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Record Sale Section -->
+        <div id="record-sale" class="section active">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h4 class="mb-0"><i class="fas fa-cash-register me-2"></i>Record New Sale</h4>
+                        </div>
+                        <div class="card-body">
+                            <form id="recordSaleForm">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="saleProduct" class="form-label">Select Product</label>
+                                        <select class="form-select" id="saleProduct" required onchange="updateProductInfo()">
+                                            <option value="">Choose product...</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="saleQuantity" class="form-label">Quantity</label>
+                                        <input type="number" class="form-control" id="saleQuantity" min="1" required oninput="calculateSaleTotal()">
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h6>Product Information</h6>
+                                                <div id="productInfo" class="text-muted">
+                                                    Select a product to view details
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card bg-primary text-white">
+                                            <div class="card-body">
+                                                <h6>Sale Summary</h6>
+                                                <div class="d-flex justify-content-between">
+                                                    <span>Unit Price:</span>
+                                                    <span id="unitPrice">₹0.00</span>
+                                                </div>
+                                                <div class="d-flex justify-content-between">
+                                                    <span>Quantity:</span>
+                                                    <span id="displayQuantity">0</span>
+                                                </div>
+                                                <hr class="my-2">
+                                                <div class="d-flex justify-content-between fw-bold">
+                                                    <span>Total Amount:</span>
+                                                    <span id="totalAmount">₹0.00</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-warning" id="stockWarning" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <span id="warningMessage"></span>
+                                </div>
+
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-check me-2"></i>Confirm Sale
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales History Section -->
+        <div id="sales-history" class="section">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-history me-2"></i>Sales History</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Unit Price</th>
+                                    <th>Total Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesTable">
+                                <!-- Sales data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Check Stock Section -->
+        <div id="check-stock" class="section">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="fas fa-warehouse me-2"></i>Current Stock Levels</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="stockSearch" placeholder="Search products by name or SKU..." onkeyup="searchStock()">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>SKU</th>
+                                    <th>Current Stock</th>
+                                    <th>Min Stock</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockTable">
+                                <!-- Stock data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-nav">
+        <a href="#" class="mobile-nav-item active" data-section="record-sale" onclick="showSectionMobile(event, 'record-sale')">
+            <i class="fas fa-cash-register"></i>
+            <span>Record</span>
+        </a>
+        <a href="#" class="mobile-nav-item" data-section="sales-history" onclick="showSectionMobile(event, 'sales-history')">
+            <i class="fas fa-history"></i>
+            <span>History</span>
+        </a>
+        <a href="#" class="mobile-nav-item" data-section="check-stock" onclick="showSectionMobile(event, 'check-stock')">
+            <i class="fas fa-warehouse"></i>
+            <span>Stock</span>
+        </a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../api.js"></script>
+    <script>
+        let products = [];
+        let stock = [];
+        
+        // Mobile navigation handler
+        function showSectionMobile(event, sectionName) {
+            event.preventDefault();
+            
+            // Update mobile nav active state
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Show section
+            showSection(sectionName);
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Role verification and initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!apiService.isAuthenticated()) {
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            const userRole = apiService.getUserRole();
+            if (userRole !== 'SALES' && userRole !== 'OWNER') {
+                apiService.redirectToDashboard();
+                return;
+            }
+            
+            initializeSalesDashboard();
+        });
+
+        async function initializeSalesDashboard() {
+            try {
+                [products, stock] = await Promise.all([
+                    apiService.getProducts(),
+                    apiService.getStock()
+                ]);
+                
+                populateProductDropdown();
+                loadSalesHistory();
+                loadStockTable();
+                setupEventListeners();
+            } catch (error) {
+                console.error('Failed to initialize dashboard:', error);
+                alert('Failed to load dashboard data');
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('recordSaleForm').addEventListener('submit', recordSale);
+        }
+
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName).classList.add('active');
+        }
+
+        function populateProductDropdown() {
+            const select = document.getElementById('saleProduct');
+            select.innerHTML = '<option value="">Choose product...</option>';
+            
+            products.forEach(product => {
+                const stockItem = stock.find(s => s.productId === product.id);
+                const currentStock = stockItem ? stockItem.quantity : 0;
+                const minStock = stockItem ? (stockItem.minimumThreshold || stockItem.minStock) : (product.minStock || product.minimumThreshold || 10);
+                
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} - ₹${product.sellingPrice} (Stock: ${currentStock})`;
+                option.setAttribute('data-price', product.sellingPrice);
+                option.setAttribute('data-stock', currentStock);
+                option.setAttribute('data-minstock', minStock);
+                select.appendChild(option);
+            });
+        }
+
+        function updateProductInfo() {
+            const select = document.getElementById('saleProduct');
+            const selectedOption = select.options[select.selectedIndex];
+            const productInfo = document.getElementById('productInfo');
+            const warningDiv = document.getElementById('stockWarning');
+            
+            if (selectedOption.value) {
+                const price = selectedOption.getAttribute('data-price');
+                const currentStock = parseInt(selectedOption.getAttribute('data-stock')) || 0;
+                const minStockAttr = selectedOption.getAttribute('data-minstock');
+                const minStock = minStockAttr && !isNaN(parseInt(minStockAttr)) ? parseInt(minStockAttr) : 10;
+                
+                productInfo.innerHTML = `
+                    <p><strong>Price:</strong> ₹${price}</p>
+                    <p><strong>Available Stock:</strong> ${currentStock} units</p>
+                    <p><strong>Minimum Stock:</strong> ${minStock} units</p>
+                `;
+                
+                // Show warning if stock is low
+                if (currentStock < minStock) {
+                    warningDiv.style.display = 'block';
+                    document.getElementById('warningMessage').textContent = 
+                        `Low stock warning! Only ${currentStock} units available.`;
+                } else {
+                    warningDiv.style.display = 'none';
+                }
+                
+                calculateSaleTotal();
+            } else {
+                productInfo.innerHTML = 'Select a product to view details';
+                warningDiv.style.display = 'none';
+            }
+        }
+
+        function calculateSaleTotal() {
+            const select = document.getElementById('saleProduct');
+            const quantityInput = document.getElementById('saleQuantity');
+            const selectedOption = select.options[select.selectedIndex];
+            
+            if (selectedOption.value && quantityInput.value) {
+                const price = parseFloat(selectedOption.getAttribute('data-price'));
+                const quantity = parseInt(quantityInput.value);
+                const total = price * quantity;
+                
+                document.getElementById('unitPrice').textContent = `₹${price.toFixed(2)}`;
+                document.getElementById('displayQuantity').textContent = quantity;
+                document.getElementById('totalAmount').textContent = `₹${total.toFixed(2)}`;
+            }
+        }
+
+        async function recordSale(e) {
+            e.preventDefault();
+            
+            const productId = document.getElementById('saleProduct').value;
+            const quantity = document.getElementById('saleQuantity').value;
+            
+            if (!productId || !quantity) {
+                alert('Please select a product and enter quantity');
+                return;
+            }
+
+            const selectedOption = document.getElementById('saleProduct').options[document.getElementById('saleProduct').selectedIndex];
+            const currentStock = parseInt(selectedOption.getAttribute('data-stock'));
+            
+            if (parseInt(quantity) > currentStock) {
+                alert(`Insufficient stock! Only ${currentStock} units available.`);
+                return;
+            }
+
+            try {
+                const product = products.find(p => p.id == productId);
+                const saleData = {
+                    productId: parseInt(productId),
+                    quantity: parseInt(quantity),
+                    totalAmount: product.sellingPrice * parseInt(quantity),
+                    saleDate: new Date().toISOString()
+                };
+                
+                await apiService.recordSale(saleData);
+                
+                alert('Sale recorded successfully!');
+                document.getElementById('recordSaleForm').reset();
+                document.getElementById('productInfo').innerHTML = 'Select a product to view details';
+                document.getElementById('stockWarning').style.display = 'none';
+                document.getElementById('unitPrice').textContent = '₹0.00';
+                document.getElementById('displayQuantity').textContent = '0';
+                document.getElementById('totalAmount').textContent = '₹0.00';
+                
+                // Refresh data
+                await initializeSalesDashboard();
+                
+            } catch (error) {
+                alert('Failed to record sale: ' + error.message);
+            }
+        }
+
+        async function loadSalesHistory() {
+            try {
+                const sales = await apiService.getSales();
+                const tableBody = document.getElementById('salesTable');
+                tableBody.innerHTML = '';
+
+                if (sales.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No sales recorded yet</td></tr>';
+                    return;
+                }
+
+                sales.forEach(sale => {
+                    const product = products.find(p => p.id === sale.productId);
+                    const unitPrice = product ? product.sellingPrice : 0;
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${new Date(sale.saleDate).toLocaleString()}</td>
+                        <td>${product ? product.name : 'Unknown'}</td>
+                        <td>${sale.quantity}</td>
+                        <td>₹${unitPrice.toFixed(2)}</td>
+                        <td>₹${sale.totalAmount.toFixed(2)}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Failed to load sales history:', error);
+            }
+        }
+
+        function loadStockTable() {
+            const tableBody = document.getElementById('stockTable');
+            tableBody.innerHTML = '';
+
+            stock.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                if (!product) return;
+
+                const minStock = item.minimumThreshold || item.minStock || 10;
+                const isOutOfStock = item.quantity === 0;
+                const isLowStock = item.quantity > 0 && item.quantity < minStock;
+                const status = isOutOfStock ? 
+                    '<span class="badge bg-danger">Out of Stock</span>' : 
+                    isLowStock ? 
+                    '<span class="badge bg-warning">Low Stock</span>' : 
+                    '<span class="badge bg-success">In Stock</span>';
+                
+                const row = document.createElement('tr');
+                if (isLowStock || isOutOfStock) row.classList.add('low-stock');
+                
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.sku}</td>
+                    <td>${item.quantity}</td>
+                    <td>${minStock}</td>
+                    <td>${status}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function searchStock() {
+            const searchTerm = document.getElementById('stockSearch').value.toLowerCase();
+            const rows = document.getElementById('stockTable').getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            }
+        }
+    </script>
+</body>
+</html>

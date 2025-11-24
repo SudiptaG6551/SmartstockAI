@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#ffc107">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>SmartStockAI - Stock Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../css/styles.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(to bottom right, #fffbeb, #fef3c7); }
+        .navbar-brand { font-weight: 700; font-size: 1.3rem; }
+        .navbar { box-shadow: 0 2px 15px rgba(0,0,0,0.1); }
+        .card { 
+            border: none; 
+            border-radius: 16px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        .card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            transform: translateY(-2px);
+        }
+        .card-header {
+            border-radius: 16px 16px 0 0 !important;
+            font-weight: 600;
+            border-bottom: none;
+        }
+        .low-stock { background-color: #fef3c7 !important; }
+        .critical-stock { background-color: #fee2e2; font-weight: bold; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .btn {
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+        .table {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .alert {
+            border-radius: 12px;
+            border: none;
+        }
+        
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .navbar { display: none; }
+            .container { padding: 12px; padding-bottom: 80px; }
+            .card-body { padding: 16px; }
+            .form-label { font-size: 14px; font-weight: 600; }
+            .form-control, .form-select { font-size: 16px; padding: 14px; min-height: 48px; }
+            .btn { padding: 14px; font-size: 16px; min-height: 48px; }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Mobile Header -->
+    <div class="mobile-header d-md-none">
+        <h5 class="mb-0"><i class="fas fa-warehouse me-2"></i>Stock Manager</h5>
+        <button class="btn btn-sm btn-outline-danger" onclick="apiService.logout()">
+            <i class="fas fa-sign-out-alt"></i>
+        </button>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-warning d-none d-md-flex">
+        <div class="container">
+            <span class="navbar-brand">SmartStockAI - Stock Manager</span>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link text-dark" href="#" onclick="showSection('receive-stock')">
+                    <i class="fas fa-truck-loading me-1"></i>Receive Stock
+                </a>
+                <a class="nav-link text-dark" href="#" onclick="showSection('view-inventory')">
+                    <i class="fas fa-warehouse me-1"></i>View Inventory
+                </a>
+                <a class="nav-link text-dark" href="#" onclick="apiService.logout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Receive Stock Section -->
+        <div id="receive-stock" class="section active">
+            <div class="row">
+                <div class="col-lg-6 mx-auto">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h4 class="mb-0"><i class="fas fa-truck-loading me-2"></i>Receive New Stock</h4>
+                        </div>
+                        <div class="card-body">
+                            <form id="receiveStockForm">
+                                <div class="mb-3">
+                                    <label for="stockProduct" class="form-label">Select Product</label>
+                                    <select class="form-select" id="stockProduct" required onchange="updateProductStockInfo()">
+                                        <option value="">Choose product...</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="stockQuantity" class="form-label">Quantity to Receive</label>
+                                    <input type="number" class="form-control" id="stockQuantity" min="1" required>
+                                </div>
+                                
+                                <div class="card bg-light mb-3">
+                                    <div class="card-body">
+                                        <h6>Current Stock Information</h6>
+                                        <div id="stockInfo" class="text-muted">
+                                            Select a product to view current stock levels
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-check me-2"></i>Receive Stock
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View Inventory Section -->
+        <div id="view-inventory" class="section">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-warehouse me-2"></i>Current Inventory</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <input type="text" class="form-control" id="inventorySearch" placeholder="Search products by name or SKU..." onkeyup="searchInventory()">
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <span id="inventorySummary">Loading inventory...</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Product Name</th>
+                                    <th>SKU</th>
+                                    <th>Current Stock</th>
+                                    <th>Min Stock Level</th>
+                                    <th>Stock Status</th>
+                                    <th>Last Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTable">
+                                <!-- Inventory data will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-nav">
+        <a href="#" class="mobile-nav-item active" data-section="receive-stock" onclick="showSectionMobile(event, 'receive-stock')">
+            <i class="fas fa-truck-loading"></i>
+            <span>Receive</span>
+        </a>
+        <a href="#" class="mobile-nav-item" data-section="view-inventory" onclick="showSectionMobile(event, 'view-inventory')">
+            <i class="fas fa-warehouse"></i>
+            <span>Inventory</span>
+        </a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../api.js"></script>
+    <script>
+        let products = [];
+        let stock = [];
+        
+        // Mobile navigation handler
+        function showSectionMobile(event, sectionName) {
+            event.preventDefault();
+            
+            // Update mobile nav active state
+            document.querySelectorAll('.mobile-nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Show section
+            showSection(sectionName);
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Role verification and initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!apiService.isAuthenticated()) {
+                window.location.href = '/login.html';
+                return;
+            }
+            
+            const userRole = apiService.getUserRole();
+            if (userRole !== 'STOCK_MANAGER' && userRole !== 'OWNER') {
+                apiService.redirectToDashboard();
+                return;
+            }
+            
+            initializeStockDashboard();
+        });
+
+        async function initializeStockDashboard() {
+            try {
+                [products, stock] = await Promise.all([
+                    apiService.getProducts(),
+                    apiService.getStock()
+                ]);
+                
+                populateStockDropdown();
+                loadInventoryTable();
+                setupEventListeners();
+                updateInventorySummary();
+            } catch (error) {
+                console.error('Failed to initialize dashboard:', error);
+                alert('Failed to load dashboard data');
+            }
+        }
+
+        function setupEventListeners() {
+            document.getElementById('receiveStockForm').addEventListener('submit', receiveStock);
+        }
+
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionName).classList.add('active');
+        }
+
+        function populateStockDropdown() {
+            const select = document.getElementById('stockProduct');
+            select.innerHTML = '<option value="">Choose product...</option>';
+            
+            products.forEach(product => {
+                const stockItem = stock.find(s => s.productId === product.id);
+                const currentStock = stockItem ? stockItem.quantity : 0;
+                
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.name} (Current: ${currentStock}, Min: ${product.minStock})`;
+                option.setAttribute('data-current', currentStock);
+                option.setAttribute('data-min', product.minStock);
+                select.appendChild(option);
+            });
+        }
+
+        function updateProductStockInfo() {
+            const select = document.getElementById('stockProduct');
+            const selectedOption = select.options[select.selectedIndex];
+            const stockInfo = document.getElementById('stockInfo');
+            
+            if (selectedOption.value) {
+                const currentStock = selectedOption.getAttribute('data-current');
+                const minStock = selectedOption.getAttribute('data-min');
+                const status = parseInt(currentStock) < parseInt(minStock) ? 'LOW STOCK' : 'OK';
+                const statusClass = status === 'LOW STOCK' ? 'text-danger' : 'text-success';
+                
+                stockInfo.innerHTML = `
+                    <p><strong>Current Stock:</strong> ${currentStock} units</p>
+                    <p><strong>Minimum Required:</strong> ${minStock} units</p>
+                    <p><strong>Status:</strong> <span class="${statusClass}">${status}</span></p>
+                    ${status === 'LOW STOCK' ? 
+                        '<div class="alert alert-warning mt-2 mb-0"><i class="fas fa-exclamation-triangle me-2"></i>This product is below minimum stock level</div>' : 
+                        ''
+                    }
+                `;
+            } else {
+                stockInfo.innerHTML = 'Select a product to view current stock levels';
+            }
+        }
+
+        async function receiveStock(e) {
+            e.preventDefault();
+            
+            const productId = document.getElementById('stockProduct').value;
+            const quantity = document.getElementById('stockQuantity').value;
+            
+            if (!productId || !quantity) {
+                alert('Please select a product and enter quantity');
+                return;
+            }
+
+            try {
+                await apiService.receiveStock({
+                    productId: parseInt(productId),
+                    quantity: parseInt(quantity)
+                });
+                
+                alert('Stock received successfully!');
+                document.getElementById('receiveStockForm').reset();
+                document.getElementById('stockInfo').innerHTML = 'Select a product to view current stock levels';
+                
+                // Refresh data
+                await initializeStockDashboard();
+                showSection('view-inventory');
+                
+            } catch (error) {
+                alert('Failed to receive stock: ' + error.message);
+            }
+        }
+
+        function loadInventoryTable() {
+            const tableBody = document.getElementById('inventoryTable');
+            tableBody.innerHTML = '';
+
+            stock.forEach(item => {
+                const product = products.find(p => p.id === item.productId);
+                if (!product) return;
+
+                const minStock = item.minimumThreshold || item.minStock || 10;
+                const isCriticalStock = item.quantity === 0;
+                const isLowStock = item.quantity > 0 && item.quantity < minStock;
+                const status = isCriticalStock ? 
+                    '<span class="badge bg-danger">Out of Stock</span>' : 
+                    isLowStock ? 
+                    '<span class="badge bg-warning">Low Stock</span>' : 
+                    '<span class="badge bg-success">In Stock</span>';
+                
+                const row = document.createElement('tr');
+                if (isCriticalStock) row.classList.add('critical-stock');
+                else if (isLowStock) row.classList.add('low-stock');
+                
+                row.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.sku}</td>
+                    <td>${item.quantity}</td>
+                    <td>${minStock}</td>
+                    <td>${status}</td>
+                    <td>${new Date().toLocaleDateString()}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateInventorySummary() {
+            const totalProducts = products.length;
+            const lowStockItems = stock.filter(item => {
+                const minStock = item.minimumThreshold || item.minStock || 10;
+                return item.quantity < minStock && item.quantity > 0;
+            }).length;
+            const outOfStockItems = stock.filter(item => item.quantity === 0).length;
+            const inStockItems = totalProducts - lowStockItems - outOfStockItems;
+            
+            document.getElementById('inventorySummary').innerHTML = 
+                `Total: ${totalProducts} products | In Stock: ${inStockItems} | Low Stock: ${lowStockItems} | Out of Stock: ${outOfStockItems}`;
+        }
+
+        function searchInventory() {
+            const searchTerm = document.getElementById('inventorySearch').value.toLowerCase();
+            const rows = document.getElementById('inventoryTable').getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            }
+        }
+    </script>
+</body>
+</html>
